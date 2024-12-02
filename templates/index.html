@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASL Detection</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: Arial, sans-serif;
+    }
+
+    #video-container {
+      flex: 2;
+      padding: 20px;
+    }
+
+    #output-container {
+      flex: 1;
+      padding: 20px;
+    }
+
+    video {
+      width: 100%;
+      max-width: 600px;
+      border: 2px solid #000;
+    }
+
+    img {
+      width: 100%; /* Adjust the width to fit the container */
+      max-width: 400px; /* Increase the maximum size of the image */
+      height: auto; /* Maintain aspect ratio */
+      border: 2px solid #000;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    p {
+      font-size: 18px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="video-container">
+    <h1>ASL Detection</h1>
+    <p>Output: <span id="sentence">None</span></p>
+    <video id="video" autoplay playsinline></video>
+  </div>
+
+  <div id="output-container">
+    <img src="{{ url_for('static', filename='aslsigns.png') }}" alt="ASL Reference Image">
+  </div>
+
+  <script>
+    // Access the webcam
+    const video = document.getElementById("video");
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then((stream) => {
+        video.srcObject = stream;
+      })
+      .catch((err) => {
+        console.error("Error accessing the camera:", err);
+        document.getElementById("sentence").textContent = "Camera access denied!";
+      });
+
+    async function predictFrame() {
+      // Create a canvas to capture the current video frame
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Convert the frame to a Blob
+      const frame = canvas.toDataURL("image/jpeg");
+      const blob = await (await fetch(frame)).blob();
+
+      // Send the frame to the Flask API
+      const formData = new FormData();
+      formData.append("frame", blob);
+
+      try {
+        const response = await fetch("/predict", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+        document.getElementById("sentence").textContent =
+          data.final_characters || data.error;
+      } catch (error) {
+        console.error("Error predicting frame:", error);
+      }
+    }
+
+    // Call the prediction function every 200ms
+    setInterval(predictFrame, 200);
+  </script>
+</body>
+</html>
