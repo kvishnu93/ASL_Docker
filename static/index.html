@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>American Sign Language Detection</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+    }
+
+    header {
+      width: 100%;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    #header-image {
+      width: 100%;
+      max-width: 400px;
+      height: auto;
+    }
+
+    h1 {
+      font-size: 42px; /* Larger font size for the title */
+      color: lightblue; /* Light blue color */
+      margin-top: 10px;
+    }
+
+    main {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      flex-grow: 1;
+      padding: 20px;
+    }
+
+    #video-container, #output-container, #image-container {
+      flex: 1;
+      text-align: center;
+    }
+
+    #video-container {
+      text-align: left;
+    }
+
+    #output-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: black; /* Changed output text color to black */
+    }
+
+    #output-container p {
+      font-size: 44px; /* Doubled the font size for output text */
+      font-weight: bold;
+    }
+
+    video {
+      width: 100%;
+      max-width: 800px; /* Increased video frame size */
+      border: 2px solid #000;
+    }
+
+    img {
+      width: 100%;
+      max-width: 400px;
+      height: auto;
+      border: 2px solid #000;
+    }
+
+    footer {
+      width: 100%;
+      text-align: center;
+      padding: 10px;
+      font-weight: bold;
+      background-color: #f0f0f0;
+      border-top: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img id="header-image" src="{{ url_for('static', filename='dsi.png') }}" alt="Header Image">
+    <h1>American Sign Language Detection</h1>
+  </header>
+
+  <main>
+    <div id="video-container">
+      <video id="video" autoplay playsinline></video>
+    </div>
+    <div id="output-container">
+      <p>Output: <span id="sentence">None</span></p>
+    </div>
+    <div id="image-container">
+      <img src="{{ url_for('static', filename='a-z.png') }}" alt="ASL Reference Image">
+    </div>
+  </main>
+
+  <footer>
+    By Vishnu Teja Koduru and Anil Kumar Dasannagari
+  </footer>
+
+  <script>
+    // Access the webcam
+    const video = document.getElementById("video");
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then((stream) => {
+        video.srcObject = stream;
+      })
+      .catch((err) => {
+        console.error("Error accessing the camera:", err);
+        document.getElementById("sentence").textContent = "Camera access denied!";
+      });
+
+    async function predictFrame() {
+      // Create a canvas to capture the current video frame
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Convert the frame to a Blob
+      const frame = canvas.toDataURL("image/jpeg");
+      const blob = await (await fetch(frame)).blob();
+
+      // Send the frame to the Flask API
+      const formData = new FormData();
+      formData.append("frame", blob);
+
+      try {
+        const response = await fetch("/predict", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await response.json();
+        document.getElementById("sentence").textContent =
+          data.final_characters || data.error;
+      } catch (error) {
+        console.error("Error predicting frame:", error);
+      }
+    }
+
+    // Call the prediction function every 200ms
+    setInterval(predictFrame, 200);
+  </script>
+</body>
+</html>
