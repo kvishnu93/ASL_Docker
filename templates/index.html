@@ -3,58 +3,111 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ASL Detection</title>
+  <title>American Sign Language Detection</title>
   <style>
     body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+    }
+
+    header {
+      width: 100%;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    #header-image {
+      width: 100%;
+      max-width: 400px;
+      height: auto;
+    }
+
+    h1 {
+      font-size: 42px; /* Larger font size for the title */
+      color: lightblue; /* Light blue color */
+      margin-top: 10px;
+    }
+
+    main {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-family: Arial, sans-serif;
+      width: 100%;
+      flex-grow: 1;
+      padding: 20px;
+    }
+
+    #video-container, #output-container, #image-container {
+      flex: 1;
+      text-align: center;
     }
 
     #video-container {
-      flex: 2;
-      padding: 20px;
+      text-align: left;
     }
 
     #output-container {
-      flex: 1;
-      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: black; /* Changed output text color to black */
+    }
+
+    #output-container p {
+      font-size: 44px; /* Doubled the font size for output text */
+      font-weight: bold;
     }
 
     video {
       width: 100%;
-      max-width: 600px;
+      max-width: 800px; /* Increased video frame size */
       border: 2px solid #000;
     }
 
     img {
-      width: 100%; /* Adjust the width to fit the container */
-      max-width: 400px; /* Increase the maximum size of the image */
-      height: auto; /* Maintain aspect ratio */
+      width: 100%;
+      max-width: 400px;
+      height: auto;
       border: 2px solid #000;
     }
 
-    h1 {
+    footer {
+      width: 100%;
       text-align: center;
-    }
-
-    p {
-      font-size: 18px;
+      padding: 10px;
       font-weight: bold;
+      background-color: #f0f0f0;
+      border-top: 1px solid #ccc;
     }
   </style>
 </head>
 <body>
-  <div id="video-container">
-    <h1>ASL Detection</h1>
-    <p>Output: <span id="sentence">None</span></p>
-    <video id="video" autoplay playsinline></video>
-  </div>
+  <header>
+    <img id="header-image" src="{{ url_for('static', filename='dsi.png') }}" alt="Header Image">
+    <h1>American Sign Language Detection</h1>
+  </header>
 
-  <div id="output-container">
-    <img src="{{ url_for('static', filename='aslsigns.png') }}" alt="ASL Reference Image">
-  </div>
+  <main>
+    <div id="video-container">
+      <video id="video" autoplay playsinline></video>
+    </div>
+    <div id="output-container">
+      <p>Output: <span id="sentence">None</span></p>
+    </div>
+    <div id="image-container">
+      <img src="{{ url_for('static', filename='a-z.png') }}" alt="ASL Reference Image">
+    </div>
+  </main>
+
+  <footer>
+    By Vishnu Teja Koduru and Anil Kumar Dasannagari
+  </footer>
 
   <script>
     // Access the webcam
